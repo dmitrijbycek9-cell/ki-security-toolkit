@@ -1,6 +1,6 @@
 #!/bin/bash
 # KI Security Toolkit — Auto-Installer
-# Ein Befehl. Alles wird gemacht.
+# ZERO Dependencies — nur Python + urllib (Standard-Library)
 
 set -e
 
@@ -9,6 +9,7 @@ INSTALL_DIR="$HOME/ki-toolkit"
 
 echo "==============================================="
 echo "  KI Security Toolkit — Auto-Installer"
+echo "  ZERO Dependencies — nur Python stdlib"
 echo "==============================================="
 echo ""
 
@@ -16,9 +17,11 @@ echo ""
 if ! command -v python3 &>/dev/null; then
     echo "[+] Installing Python..."
     if command -v pkg &>/dev/null; then
-        pkg install python python-pip -y
+        pkg install python -y
     elif command -v apt &>/dev/null; then
-        apt install python3 python3-pip -y
+        apt install python3 -y
+    elif command -v pacman &>/dev/null; then
+        pacman -Sy python --noconfirm
     else
         echo "[!] Install python3 manually"
         exit 1
@@ -26,12 +29,7 @@ if ! command -v python3 &>/dev/null; then
 fi
 echo "[OK] Python ready"
 
-# 2. anthropic SDK
-echo "[+] Installing anthropic SDK..."
-pip3 install anthropic --quiet 2>/dev/null || pip install anthropic --quiet
-echo "[OK] SDK ready"
-
-# 3. Download tools
+# 2. Download tools (KEIN pip install mehr nötig!)
 echo "[+] Downloading tools..."
 mkdir -p "$INSTALL_DIR"
 cd "$INSTALL_DIR"
@@ -50,14 +48,12 @@ done
 
 chmod +x *.py
 
-# 4. API Key
-echo ""
-echo "==============================================="
-echo "  API Key Setup"
-echo "==============================================="
+# 3. API Key
 if [ -z "$ANTHROPIC_API_KEY" ]; then
-    echo -n "Enter your Anthropic API Key: "
+    echo ""
+    echo -n "Enter your Anthropic API Key (or press Enter to skip): "
     read ANTHROPIC_API_KEY
+    echo ""
 fi
 
 if [ -n "$ANTHROPIC_API_KEY" ]; then
@@ -66,31 +62,29 @@ if [ -n "$ANTHROPIC_API_KEY" ]; then
     echo "[OK] API Key saved"
 fi
 
-# 5. Aliases
+# 4. Aliases
 echo "" >> ~/.bashrc
 echo "# KI Security Toolkit" >> ~/.bashrc
 echo "alias ki-scan='cd $INSTALL_DIR && python3 prompt_scanner.py --target'" >> ~/.bashrc
 echo "alias ki-bestn='cd $INSTALL_DIR && python3 best_of_n.py --prompt'" >> ~/.bashrc
 echo "alias ki-crescendo='cd $INSTALL_DIR && python3 crescendo.py --target'" >> ~/.bashrc
+echo "alias ki-dir='cd $INSTALL_DIR && ls -la'" >> ~/.bashrc
 source ~/.bashrc 2>/dev/null || true
 
-# 6. Done
+# 5. Done
 echo ""
 echo "==============================================="
-echo "  DONE!"
+echo "  ✅ DONE!"
 echo "==============================================="
 echo ""
-echo "Tools installed to: $INSTALL_DIR"
+echo "Tools: $INSTALL_DIR"
 echo ""
-echo "Quick aliases:"
-echo "  ki-scan 'target'        — Prompt Scanner"
+echo "Aliases:"
+echo "  ki-scan 'target'         — Prompt Scanner"
 echo "  ki-bestn 'target' -n 100 — Best-of-N"
 echo "  ki-crescendo --target 'X' --topic 'Y'"
+echo "  ki-dir                   — Show files"
 echo ""
-echo "Or cd $INSTALL_DIR and:"
-echo "  python3 best_of_n.py --help"
-echo "  python3 crescendo.py --help"
-echo "  python3 prompt_scanner.py --help"
-echo ""
-echo "Get API key: https://console.anthropic.com"
+echo "No dependencies needed! Just Python + API Key."
+echo "Get key: https://console.anthropic.com"
 echo ""
